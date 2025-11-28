@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eigenvalue & Eigenvector Calculator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 900px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .matrix-size {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .matrix-size input {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            width: 100px;
+        }
+
+        .matrix-input {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .matrix-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .matrix-row input {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            text-align: center;
+            flex: 1;
+        }
+
+        .matrix-row input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #8141c0 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .btn-small {
+            width: auto;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .result-item {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .result-title {
+            color: #667eea;
+            font-weight: 700;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+        }
+
+        .format-group {
+            margin-bottom: 15px;
+        }
+
+        .format-label {
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        .format-value {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            color: #333;
+            overflow-x: auto;
+        }
+
+        .error {
+            background: #ff4444;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .info {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🔢 Eigenvalue & Eigenvector Calculator</h1>
+
+        <div class="info">
+            💡 Enter a square matrix to calculate all its eigenvalues and eigenvectors
+        </div>
+
+        <div class="input-section">
+            <label>Matrix Size:</label>
+            <div class="matrix-size">
+                <input type="number" id="matrixSize" value="2" min="2" max="5">
+                <button onclick="generateMatrix()" class="btn-small">Generate Matrix</button>
+            </div>
+
+            <label>Enter Matrix Values:</label>
+            <div id="matrixInput" class="matrix-input"></div>
+
+            <button onclick="calculate()">Calculate Eigenvalues & Eigenvectors</button>
+        </div>
+
+        <div class="error" id="error"></div>
+
+        <div class="results" id="results"></div>
+    </div>
+
+    <script>
+        function generateMatrix() {
+            const size = parseInt(document.getElementById('matrixSize').value);
+            const container = document.getElementById('matrixInput');
+            container.innerHTML = '';
+
+            for (let i = 0; i < size; i++) {
+                const row = document.createElement('div');
+                row.className = 'matrix-row';
+                for (let j = 0; j < size; j++) {
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.step = 'any';
+                    input.placeholder = `a${i + 1}${j + 1}`;
+                    input.id = `cell-${i}-${j}`;
+                    input.value = '0';
+                    row.appendChild(input);
+                }
+                container.appendChild(row);
+            }
+
+            // Hide results when new matrix is generated
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('error').classList.remove('show');
+        }
+
+        function getMatrix() {
+            const size = parseInt(document.getElementById('matrixSize').value);
+            const matrix = [];
+
+            for (let i = 0; i < size; i++) {
+                const row = [];
+                for (let j = 0; j < size; j++) {
+                    const value = parseFloat(document.getElementById(`cell-${i}-${j}`).value) || 0;
+                    row.push(value);
+                }
+                matrix.push(row);
+            }
+            return matrix;
+        }
+
+        function formatVector(vector) {
+            return '[' + vector.map(v => Math.round(v)).join(', ') + ']';
+        }
+
+        function formatComplexNumber(complex) {
+            if (typeof complex === 'number') {
+                return Math.round(complex);
+            }
+
+            const real = Math.round(complex.re || complex.real || 0);
+            const imag = Math.round(complex.im || complex.imag || 0);
+
+            if (imag === 0) return real;
+            if (real === 0) return `${imag}i`;
+            if (imag > 0) return `${real} + ${imag}i`;
+            return `${real} - ${Math.abs(imag)}i`;
+        }
+
+        function formatComplexVector(vector) {
+            const formatted = vector.map(v => {
+                if (typeof v === 'number') {
+                    return Math.round(v);
+                }
+                return formatComplexNumber(v);
+            });
+            return '[' + formatted.join(', ') + ']';
+        }
+
+        function normalizeVector() {
+            const normalizeErrorDiv = document.getElementById('normalizeError');
+            const normalizeResultsDiv = document.getElementById('normalizeResults');
+            normalizeErrorDiv.classList.remove('show');
+            normalizeResultsDiv.classList.remove('show');
+
+            try {
+                const input = document.getElementById('normalizeInput').value.trim();
+                if (!input) {
+                    throw new Error('Please enter a vector');
+                }
+
+                // Parse the input vector
+                const vector = input.split(',').map(v => parseFloat(v.trim()));
+
+                if (vector.some(isNaN)) {
+                    throw new Error('Invalid vector format. Use comma-separated numbers');
+                }
+
+                // Calculate magnitude
+                const magnitude = Math.sqrt(vector.reduce((sum, v) => sum + v * v, 0));
+
+                // Normalize
+                const normalized = vector.map(v => v / magnitude);
+                const normalizedInteger = normalized.map(v => Math.round(v));
+
+                // Display results
+                normalizeResultsDiv.innerHTML = `
+                    <div class="result-item">
+                        <div class="result-title">Normalization Results</div>
+                        
+                        <div class="format-group">
+                            <div class="format-label">Original Vector:</div>
+                            <div class="format-value">[${vector.join(', ')}]</div>
+                        </div>
+
+                        <div class="format-group">
+                            <div class="format-label">Magnitude:</div>
+                            <div class="format-value">${Math.round(magnitude)}</div>
+                        </div>
+
+                        <div class="format-group">
+                            <div class="format-label">Normalized Vector (Integer):</div>
+                            <div class="format-value">[${normalizedInteger.join(', ')}]</div>
+                        </div>
+                    </div>
+                `;
+
+                normalizeResultsDiv.classList.add('show');
+
+            } catch (error) {
+                normalizeErrorDiv.textContent = 'Error: ' + error.message;
+                normalizeErrorDiv.classList.add('show');
+            }
+        }
+
+        function normalizeVector() {
+            const normalizeErrorDiv = document.getElementById('normalizeError');
+            const normalizeResultsDiv = document.getElementById('normalizeResults');
+            normalizeErrorDiv.classList.remove('show');
+            normalizeResultsDiv.classList.remove('show');
+
+            try {
+                const input = document.getElementById('normalizeInput').value.trim();
+                if (!input) {
+                    throw new Error('Please enter a vector');
+                }
+
+                // Parse the input vector
+                const vector = input.split(',').map(v => parseFloat(v.trim()));
+
+                if (vector.some(isNaN)) {
+                    throw new Error('Invalid vector format. Use comma-separated numbers');
+                }
+
+                // Calculate magnitude
+                const magnitude = Math.sqrt(vector.reduce((sum, v) => sum + v * v, 0));
+
+                // Normalize
+                const normalized = vector.map(v => v / magnitude);
+                const normalizedInteger = normalized.map(v => Math.round(v));
+
+                // Display results
+                normalizeResultsDiv.innerHTML = `
+                    <div class="result-item">
+                        <div class="result-title">Normalization Results</div>
+                        
+                        <div class="format-group">
+                            <div class="format-label">Original Vector:</div>
+                            <div class="format-value">[${vector.join(', ')}]</div>
+                        </div>
+
+                        <div class="format-group">
+                            <div class="format-label">Magnitude:</div>
+                            <div class="format-value">${Math.round(magnitude)}</div>
+                        </div>
+
+                        <div class="format-group">
+                            <div class="format-label">Normalized Vector (Integer):</div>
+                            <div class="format-value">[${normalizedInteger.join(', ')}]</div>
+                        </div>
+                    </div>
+                `;
+
+                normalizeResultsDiv.classList.add('show');
+
+            } catch (error) {
+                normalizeErrorDiv.textContent = 'Error: ' + error.message;
+                normalizeErrorDiv.classList.add('show');
+            }
+        }
+
+        function displayResults(eigenvalues, eigenvectors) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+
+            // Add overall steps section
+            const stepsSection = document.createElement('div');
+            stepsSection.className = 'result-item';
+            stepsSection.innerHTML = `
+                <div class="result-title">📋 Step-by-Step Solution Process</div>
+                
+                <div class="format-group">
+                    <div class="format-label">Step 1: Input Matrix</div>
+                    <div class="format-value">${formatMatrix(getMatrix())}</div>
+                </div>
+
+                <div class="format-group">
+                    <div class="format-label">Step 2: Calculate Characteristic Polynomial</div>
+                    <div class="format-value">det(A - λI) = 0</div>
+                </div>
+
+                <div class="format-group">
+                    <div class="format-label">Step 3: Find Eigenvalues (λ)</div>
+                    <div class="format-value">Solve the characteristic equation to find eigenvalues</div>
+                </div>
+
+                <div class="format-group">
+                    <div class="format-label">Step 4: Find Eigenvectors</div>
+                    <div class="format-value">For each eigenvalue λ, solve (A - λI)v = 0</div>
+                </div>
+            `;
+            resultsDiv.appendChild(stepsSection);
+
+            // Add individual results for each eigenvalue/eigenvector
+            for (let i = 0; i < eigenvalues.length; i++) {
+                const resultItem = document.createElement('div');
+                resultItem.className = 'result-item';
+
+                const eigenvalue = eigenvalues[i];
+                const eigenvector = eigenvectors[i];
+
+                resultItem.innerHTML = `
+                    <div class="result-title">Solution ${i + 1}: Eigenvalue & Eigenvector</div>
+                    
+                    <div class="format-group">
+                        <div class="format-label">Step 5.${i + 1}.a: Eigenvalue (λ${i + 1})</div>
+                        <div class="format-value">${formatComplexNumber(eigenvalue)}</div>
+                    </div>
+
+                    <div class="format-group">
+                        <div class="format-label">Step 5.${i + 1}.b: Corresponding Eigenvector (v${i + 1})</div>
+                        <div class="format-value">${formatComplexVector(eigenvector)}</div>
+                    </div>
+
+                    <div class="format-group">
+                        <div class="format-label">Step 5.${i + 1}.c: Verification</div>
+                        <div class="format-value">A × v${i + 1} = λ${i + 1} × v${i + 1}</div>
+                    </div>
+                `;
+
+                resultsDiv.appendChild(resultItem);
+            }
+
+            resultsDiv.classList.add('show');
+        }
+
+        function formatMatrix(matrix) {
+            let result = '[\n';
+            for (let i = 0; i < matrix.length; i++) {
+                result += '  [' + matrix[i].join(', ') + ']';
+                if (i < matrix.length - 1) result += ',';
+                result += '\n';
+            }
+            result += ']';
+            return result;
+        }
+
+        function calculate() {
+            const errorDiv = document.getElementById('error');
+            errorDiv.classList.remove('show');
+
+            try {
+                const matrix = getMatrix();
+
+                // Use math.js to calculate eigenvalues and eigenvectors
+                const eigs = math.eigs(matrix);
+
+                const eigenvalues = eigs.values;
+                const eigenvectors = eigs.vectors;
+
+                // Convert eigenvectors to array format
+                const vectorsArray = [];
+                for (let i = 0; i < eigenvectors.length; i++) {
+                    const vector = [];
+                    for (let j = 0; j < eigenvectors[i].length; j++) {
+                        vector.push(eigenvectors[i][j]);
+                    }
+                    vectorsArray.push(vector);
+                }
+
+                displayResults(eigenvalues, vectorsArray);
+
+            } catch (error) {
+                errorDiv.textContent = 'Error: ' + error.message + '. Please ensure the matrix is valid.';
+                errorDiv.classList.add('show');
+            }
+        }
+
+        // Initialize with 2x2 matrix
+        window.onload = function () {
+            generateMatrix();
+        };
+    </script>
+
+    <button style="
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #3498DB;
+    color: #fffbfb;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 50px;
+    cursor: pointer;
+"><a href="/index.html">bach to home</a></button></div>
+</body>
+
+</html>

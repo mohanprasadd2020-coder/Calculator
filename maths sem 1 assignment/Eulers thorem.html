@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Euler's Theorem Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #5421ba 0%, #a105ef 100%);
+            color: #333;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #aa09ea 0%, #4b2468 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .calculator-section {
+            background: #f0f4ff;
+            padding: 30px;
+            margin: 30px 0;
+            border-radius: 10px;
+            border: 2px solid #5212db;
+        }
+
+        h2 {
+            color: #1e3c72;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .input-group {
+            margin: 20px 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #7113d0;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #47618d;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: 'Courier New', monospace;
+        }
+
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        button {
+            background: linear-gradient(135deg, #a73781 0%, #7b08c3 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            margin: 10px 5px;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(63, 2, 117, 0.4);
+        }
+
+        .result-box {
+            background: white;
+            padding: 25px;
+            margin-top: 25px;
+            border-radius: 10px;
+            border: 2px solid #8936f6;
+            display: none;
+        }
+
+        .result-box.show {
+            display: block;
+        }
+
+        .equation-display {
+            font-family: 'Courier New', monospace;
+            font-size: 1.2em;
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #c842ed;
+        }
+
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .step {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .step-title {
+            font-weight: bold;
+            color: #1e3c72;
+            margin-bottom: 10px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .example-card {
+            background: #fff;
+            padding: 20px;
+            border: 2px solid #5b21a1;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .example-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-box {
+            background: #68599d;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #ff6026;
+            text-decoration-color: #e6e3e3;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Euler's Theorem Calculator</h1>
+            <p class="subtitle">Verify Homogeneous Functions</p>
+        </header>
+
+        <div class="content"> #45064c 0%, #9551d8 100%
+            <div class="calculator-section">
+                <h2>Function Input</h2>
+                <div class="info-box">
+                    <strong>Enter your function using JavaScript syntax:</strong><br>
+                    • Use x, y, z as variables<br>
+                    • Powers: x**2 or Math.pow(x, 2)<br>
+                    • Examples: x**3 + 3*x**2*y, x**2/y, x*y + y**2
+                </div>
+
+                <div class="input-group">
+                    <label>Select Number of Variables:</label>
+                    <select id="numVars" onchange="updateVariableInputs()">
+                        <option value="2">2 Variables (x, y)</option>
+                        <option value="3">3 Variables (x, y, z)</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label>Function f(x, y) or f(x, y, z):</label>
+                    <input type="text" id="functionInput" placeholder="e.g., x**3 + 3*x**2*y + x*y**2">
+                </div>
+
+                <div class="input-group">
+                    <label>Expected Degree (k):</label>
+                    <input type="number" id="degreeInput" value="1" step="1">
+                </div>
+
+                <div class="input-group">
+                    <label>Test Point (comma-separated, e.g., 2, 3 or 1, 2, 3):</label>
+                    <input type="text" id="pointInput" placeholder="e.g., 2, 3">
+                </div>
+
+                <button onclick="calculateEulerTheorem()">Calculate & Verify</button>
+                <button onclick="clearResults()">Clear</button>
+            </div>
+
+            <div class="calculator-section">
+                <h2>Quick Examples (Click to Load)</h2>
+                <div class="grid">
+                    <div class="example-card" onclick="loadExample(1)">
+                        <strong>Degree 3 Polynomial</strong>
+                        <div class="equation-display">f(x,y) = x³ + 3x²y + xy²</div>
+                    </div>
+                    <div class="example-card" onclick="loadExample(2)">
+                        <strong>Degree 1 Rational</strong>
+                        <div class="equation-display">f(x,y) = x²/y</div>
+                    </div>
+                    <div class="example-card" onclick="loadExample(3)">
+                        <strong>Degree 2 (3 vars)</strong>
+                        <div class="equation-display">f(x,y,z) = x² + 2xy + y² + z²</div>
+                    </div>
+                    <div class="example-card" onclick="loadExample(4)">
+                        <strong>Cobb-Douglas</strong>
+                        <div class="equation-display">f(x,y) = x^0.6 * y^0.4</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="resultBox" class="result-box">
+                <h2>Calculation Results</h2>
+                <div id="resultContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <button style="
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #0a95f2;
+    color: #e6e3e3;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 50px;
+    cursor: pointer;
+    text-decoration: #f7f8f9;
+"><a href="/index.html">bach to home</a></button></div>
+    <script>
+        function updateVariableInputs() {
+            const numVars = document.getElementById('numVars').value;
+            const placeholder = numVars === '2' ? 'e.g., 2, 3' : 'e.g., 1, 2, 3';
+            document.getElementById('pointInput').placeholder = placeholder;
+        }
+
+        function loadExample(num) {
+            const examples = {
+                1: { func: 'x**3 + 3*x**2*y + x*y**2', degree: 3, point: '2, 3', vars: 2 },
+                2: { func: 'x**2/y', degree: 1, point: '4, 2', vars: 2 },
+                3: { func: 'x**2 + 2*x*y + y**2 + z**2', degree: 2, point: '1, 2, 3', vars: 3 },
+                4: { func: 'Math.pow(x, 0.6) * Math.pow(y, 0.4)', degree: 1, point: '10, 5', vars: 2 }
+            };
+
+            const ex = examples[num];
+            document.getElementById('functionInput').value = ex.func;
+            document.getElementById('degreeInput').value = ex.degree;
+            document.getElementById('pointInput').value = ex.point;
+            document.getElementById('numVars').value = ex.vars;
+        }
+
+        function numericalDerivative(func, varIndex, point, h = 0.0001) {
+            const point1 = [...point];
+            const point2 = [...point];
+            point1[varIndex] += h;
+            point2[varIndex] -= h;
+            return (func(...point1) - func(...point2)) / (2 * h);
+        }
+
+        function createFunction(funcStr, numVars) {
+            if (numVars === 2) {
+                return new Function('x', 'y', `return ${funcStr};`);
+            } else {
+                return new Function('x', 'y', 'z', `return ${funcStr};`);
+            }
+        }
+
+        function calculateEulerTheorem() {
+            try {
+                const funcStr = document.getElementById('functionInput').value;
+                const k = parseFloat(document.getElementById('degreeInput').value);
+                const numVars = parseInt(document.getElementById('numVars').value);
+                const pointStr = document.getElementById('pointInput').value;
+                const point = pointStr.split(',').map(v => parseFloat(v.trim()));
+
+                if (point.length !== numVars) {
+                    throw new Error(`Please provide exactly ${numVars} values for the test point.`);
+                }
+
+                const func = createFunction(funcStr, numVars);
+
+                // Calculate f at the point
+                const fValue = numVars === 2 ? func(point[0], point[1]) : func(point[0], point[1], point[2]);
+
+                // Calculate partial derivatives
+                const derivatives = [];
+                const varNames = ['x', 'y', 'z'];
+
+                for (let i = 0; i < numVars; i++) {
+                    const derivative = numericalDerivative(func, i, point);
+                    derivatives.push(derivative);
+                }
+
+                // Calculate sum: Σ xi * (∂f/∂xi)
+                let sum = 0;
+                for (let i = 0; i < numVars; i++) {
+                    sum += point[i] * derivatives[i];
+                }
+
+                // Calculate k * f
+                const kTimesF = k * fValue;
+
+                // Check if they're approximately equal
+                const tolerance = 0.01;
+                const isValid = Math.abs(sum - kTimesF) < tolerance;
+
+                // Display results
+                let html = '<div class="step">';
+                html += '<div class="step-title">Given Function:</div>';
+                html += `<div class="equation-display">f(${varNames.slice(0, numVars).join(', ')}) = ${funcStr}</div>`;
+                html += '</div>';
+
+                html += '<div class="step">';
+                html += '<div class="step-title">Test Point:</div>';
+                html += `<div class="equation-display">(${varNames.slice(0, numVars).join(', ')}) = (${point.join(', ')})</div>`;
+                html += '</div>';
+
+                html += '<div class="step">';
+                html += '<div class="step-title">Function Value:</div>';
+                html += `<div class="equation-display">f(${point.join(', ')}) = ${fValue.toFixed(6)}</div>`;
+                html += '</div>';
+
+                html += '<div class="step">';
+                html += '<div class="step-title">Partial Derivatives:</div>';
+                for (let i = 0; i < numVars; i++) {
+                    html += `<div class="equation-display">∂f/∂${varNames[i]} = ${derivatives[i].toFixed(6)}</div>`;
+                }
+                html += '</div>';
+
+                html += '<div class="step">';
+                html += '<div class="step-title">Euler\'s Theorem Calculation:</div>';
+                let terms = [];
+                for (let i = 0; i < numVars; i++) {
+                    terms.push(`${varNames[i]}(∂f/∂${varNames[i]})`);
+                }
+                html += `<div class="equation-display">${terms.join(' + ')}</div>`;
+
+                let calculation = [];
+                for (let i = 0; i < numVars; i++) {
+                    calculation.push(`${point[i]} × ${derivatives[i].toFixed(6)}`);
+                }
+                html += `<div class="equation-display">= ${calculation.join(' + ')}</div>`;
+                html += `<div class="equation-display">= ${sum.toFixed(6)}</div>`;
+                html += '</div>';
+
+                html += '<div class="step">';
+                html += '<div class="step-title">Right Side (k × f):</div>';
+                html += `<div class="equation-display">${k} × ${fValue.toFixed(6)} = ${kTimesF.toFixed(6)}</div>`;
+                html += '</div>';
+
+                html += '<div class="step">';
+                html += '<div class="step-title">Verification:</div>';
+                html += `<div class="equation-display">Left Side = ${sum.toFixed(6)}</div>`;
+                html += `<div class="equation-display">Right Side = ${kTimesF.toFixed(6)}</div>`;
+                html += `<div class="equation-display">Difference = ${Math.abs(sum - kTimesF).toFixed(6)}</div>`;
+                if (isValid) {
+                    html += '<div class="equation-display success">✓ Euler\'s Theorem VERIFIED!</div>';
+                    html += `<div class="equation-display success">The function is homogeneous of degree ${k}</div>`;
+                } else {
+                    html += '<div class="equation-display error">✗ Euler\'s Theorem NOT satisfied</div>';
+                    html += '<div class="equation-display error">The function may not be homogeneous of the specified degree</div>';
+                }
+                html += '</div>';
+
+                document.getElementById('resultContent').innerHTML = html;
+                document.getElementById('resultBox').classList.add('show');
+
+            } catch (error) {
+                document.getElementById('resultContent').innerHTML =
+                    `<div class="equation-display error">Error: ${error.message}</div>
+                    <div class="info-box">Please check your function syntax and input values.</div>`;
+                document.getElementById('resultBox').classList.add('show');
+            }
+        }
+
+        function clearResults() {
+            document.getElementById('functionInput').value = '';
+            document.getElementById('degreeInput').value = '1';
+            document.getElementById('pointInput').value = '';
+            document.getElementById('resultBox').classList.remove('show');
+        }
+    </script>
+</body>
+
+</html>
